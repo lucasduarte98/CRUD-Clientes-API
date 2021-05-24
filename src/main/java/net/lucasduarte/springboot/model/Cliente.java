@@ -21,9 +21,10 @@ public class Cliente {
 	@NotEmpty
 	@Column(name = "name")
 	private String name;
-	
+
 	@NotNull
-	@Column(name = "cpf_cnpj")
+	@NotEmpty
+	@Column(name = "cpf_cnpj", unique=true)
 	private String cpfCnpj;
 	
 	@Column(name = "endereco")

@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import net.lucasduarte.springboot.exception.ResourceDuplicateException;
 import net.lucasduarte.springboot.exception.ResourceNotFoundException;
 import net.lucasduarte.springboot.model.Cliente;
 import net.lucasduarte.springboot.repository.ClienteRepository;
@@ -40,10 +41,13 @@ public class ClienteController {
 	//Criar Clientes rest api
 	@PostMapping("/clientes")
 	@ResponseStatus(HttpStatus.CREATED)
-	public Cliente create(@Valid @RequestBody Cliente cliente) {
+	public Cliente create(@RequestBody @Valid Cliente cliente) {
+		
+		if(clienteRepository.findByCpfCnpj(cliente.getCpfCnpj()).isPresent())
+			throw new ResourceDuplicateException("CPF/CNPJ já existe: " + cliente.getCpfCnpj());
 		cliente.setAtivo(true);
 		return clienteRepository.save(cliente);
-		}
+	}
 	
 	//Buscar Cliente por Id
 	
@@ -85,5 +89,12 @@ public class ClienteController {
 		cliente.updateStatus();
 		return clienteRepository.save(cliente);
 		} 
+	
+	@GetMapping("/clientes/documento/{documento}")
+	public ResponseEntity<Cliente> getByDocumento(@PathVariable String documento) {
+		Cliente cliente = clienteRepository.findByCpfCnpj(documento)
+				.orElseThrow(()-> new ResourceNotFoundException("Cliente não encontrado:" + documento));
+		return ResponseEntity.ok(cliente);
+	}
 }
 
